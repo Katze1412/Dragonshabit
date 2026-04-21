@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life RPG">
+<meta name="theme-color" content="#08060f">
+<title>Life RPG – Habit Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08060f;--bg2:#0f0c26;--bg3:#13103a;--border:#1e1b4b;--purple:#7c3aed;--purple2:#a78bfa;--gold:#fbbf24;--red:#ef4444;--green:#22c55e;--blue:#6366f1;--pink:#f9a8d4;--teal:#14b8a6}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:#e9d5ff;font-family:'Crimson Pro',serif}
+body{max-width:430px;margin:0 auto;position:relative}
+input,select,button,textarea{font-family:'Crimson Pro',serif}
+input,select{color:#e9d5ff;background:transparent}
+input::placeholder{color:#374151}
+button{cursor:pointer;border:none}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:#2d2a6e;border-radius:99px}
+.cinzel{font-family:'Cinzel',serif}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+#header{flex-shrink:0;background:linear-gradient(180deg,#110d2e,#08060f);border-bottom:1px solid var(--border);padding:12px 16px 10px;z-index:10}
+#content{flex:1;overflow-y:auto;padding:10px 16px 0;padding-bottom:80px}
+#nav{flex-shrink:0;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,6,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px 0 8px;display:flex;justify-content:space-around;z-index:20}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;color:#4b5563;font-size:18px;padding:2px 8px;transition:color .2s;min-width:44px;min-height:44px;justify-content:center}
+.nav-btn.active{color:var(--purple2)}
+.nav-btn span{font-family:'Cinzel',serif;font-size:9px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.bar-wrap{background:#0d0b1e;border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:99px;transition:width .5s ease}
+.badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:99px;font-weight:600}
+.section-title{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--purple);margin-bottom:8px}
+.btn-primary{background:linear-gradient(90deg,#4f46e5,var(--purple));color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:1px;width:100%;box-shadow:0 0 16px #7c3aed44}
+.btn-gold{background:linear-gradient(90deg,#92400e,var(--gold));color:#000;border:none;border-radius:10px;padding:10px;font-family:'Cinzel',serif;font-size:12px;font-weight:900;letter-spacing:1px;width:100%;box-shadow:0 0 20px #fbbf2444}
+.input-field{width:100%;padding:9px 12px;border-radius:8px;background:#080614;border:1px solid #2d2a6e;color:#e9d5ff;font-size:13px;margin-bottom:8px;font-family:'Crimson Pro',serif}
+.select-field{width:100%;padding:9px 12px;border-radius:8px;background:#080614;border:1px solid #2d2a6e;color:#e9d5ff;font-size:13px;margin-bottom:8px;font-family:'Crimson Pro',serif;-webkit-appearance:none;appearance:none}
+
+/* Home Scene */
+.home-scene{position:relative;height:110px;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1px solid var(--border)}
+.scene-sky{position:absolute;inset:0}
+.scene-ground{position:absolute;bottom:0;left:0;right:0}
+.scene-element{position:absolute}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 2s infinite alternate}
+@keyframes twinkle{0%{opacity:.3;transform:scale(.8)}100%{opacity:1;transform:scale(1.1)}}
+@keyframes flicker{0%,100%{opacity:.8;transform:scaleY(1)}50%{opacity:1;transform:scaleY(1.1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes drift{0%{transform:translateX(-20px)}100%{transform:translateX(calc(100vw + 20px))}}
+@keyframes smoke{0%{opacity:.5;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-20px) scale(1.5)}}
+
+/* Overlay */
+.overlay{position:fixed;inset:0;background:#000000cc;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{width:100%;max-width:340px;background:linear-gradient(135deg,#13103a,#0d0b1e);border:1px solid #2d2a6e;border-radius:16px;padding:20px;max-height:85vh;overflow-y:auto}
+
+/* Animations */
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.1)}}
+@keyframes levelUp{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes bossIn{0%{transform:scale(.5) rotate(-10deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+
+.float-note{position:fixed;top:20px;right:16px;z-index:999;pointer-events:none}
+.float-item{font-family:'Cinzel',serif;font-size:13px;font-weight:700;background:#13103a;border:1px solid var(--blue);border-radius:10px;padding:5px 13px;margin-bottom:4px;animation:floatUp 2s ease-out forwards;box-shadow:0 0 12px #4f46e544}
+
+/* Quest card */
+.quest-card{background:var(--bg3);border:1px solid;border-radius:11px;margin-bottom:8px;overflow:hidden;transition:all .3s}
+.quest-card.done{background:#0d0a1e;border-color:var(--border);opacity:.5}
+.quest-header{padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.quest-expand{background:#0d0b1e;border-top:1px solid;padding:12px 14px}
+
+/* Die */
+.die{display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:10px;font-family:'Cinzel',serif;font-size:28px;font-weight:900;user-select:none;cursor:pointer;transition:all .15s;border:2px solid}
+
+/* Attr grid */
+.attr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.attr-cell{text-align:center;padding:6px 3px;background:#0d0b1e;border-radius:8px;border:1px solid}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="float-note" id="floats"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// GAME DATA
+// ═══════════════════════════════════════════════════════════════
+const ATTRS={
+  STR:{label:"Stärke",     icon:"💪",color:"#ef4444",cat:"fitness", desc:"Sport & körperliche Aufgaben"},
+  DEX:{label:"Geschick",   icon:"🤸",color:"#f59e0b",cat:"habits",  desc:"Routinen & Gewohnheiten"},
+  CON:{label:"Konstitution",icon:"❤️",color:"#22c55e",cat:"health",  desc:"Gesundheit, Schlaf & Ernährung"},
+  INT:{label:"Intelligenz",icon:"🧠",color:"#6366f1",cat:"learning",desc:"Lernen, Lesen & Skills"},
+  WIS:{label:"Weisheit",   icon:"🌿",color:"#14b8a6",cat:"mindful", desc:"Meditation & Reflexion"},
+  CHA:{label:"Charisma",   icon:"✨",color:"#ec4899",cat:"social",  desc:"Soziales & Kreativität"},
+};
+const CAT_ATTR={fitness:"STR",habits:"DEX",health:"CON",learning:"INT",mindful:"WIS",social:"CHA"};
+const CAT_LABEL={fitness:"💪 Fitness",habits:"🔁 Gewohnheiten",health:"❤️ Gesundheit",learning:"🧠 Lernen",mindful:"🌿 Achtsamkeit",social:"✨ Sozial"};
+const CAT_COLOR={fitness:"#ef4444",habits:"#f59e0b",health:"#22c55e",learning:"#6366f1",mindful:"#14b8a6",social:"#ec4899"};
+
+const RARITIES={
+  common:  {label:"Gewöhnlich",  color:"#9ca3af",glow:"#9ca3af33",border:"#374151"},
+  uncommon:{label:"Ungewöhnlich",color:"#22c55e",glow:"#22c55e33",border:"#166534"},
+  rare:    {label:"Selten",      color:"#6366f1",glow:"#6366f133",border:"#3730a3"},
+  epic:    {label:"Episch",      color:"#a855f7",glow:"#a855f733",border:"#6b21a8"},
+  legendary:{label:"Legendär",  color:"#f59e0b",glow:"#f59e0b44",border:"#92400e"},
+  mystic:  {label:"Mystisch",    color:"#f9a8d4",glow:"#f9a8d466",border:"#9d174d"},
+};
+const R_ORDER=["common","uncommon","rare","epic","legendary","mystic"];
+
+const LOOT={
+  1:     {tier:"fail",  label:"Fehlschlag!",        icon:"💀",xpM:0,  goldM:0,  iC:0,   pC:0,   color:"#ef4444",story:["Du stolperst und lässt alles fallen...","Nicht dein Tag.","Der Schatten lacht."]},
+  "2-9": {tier:"normal",label:"Erfolg",             icon:"⚔️",xpM:.8, goldM:.8, iC:.06, pC:0,   color:"#9ca3af",story:["Solide Arbeit, Held.","Gut gemacht.","Du hältst Schritt."]},
+  "10-14":{tier:"good", label:"Guter Treffer!",     icon:"✨",xpM:1,  goldM:1,  iC:.18, pC:.03, color:"#6366f1",story:["Die Götter nicken.","Stärker als gestern.","Dein Weg wird heller."]},
+  "15-19":{tier:"great",label:"Großer Erfolg!",     icon:"⭐",xpM:1.5,goldM:1.5,iC:.35, pC:.08, color:"#f59e0b",story:["Die Sterne stehen gut!","Legendenwerdig!","Das Schicksal begünstigt dich."]},
+  20:    {tier:"nat20", label:"NAT 20 — GÖTTLICH!", icon:"💫",xpM:3,  goldM:3,  iC:.75, pC:.25, color:"#f9a8d4",story:["DIE GÖTTER SCHREIEN DEINEN NAMEN!","UNVERGESSLICH!","Das Universum verbeugt sich!"]},
+};
+const R_WEIGHTS={
+  fail:{},
+  normal:{common:70,uncommon:25,rare:5,epic:0,legendary:0,mystic:0},
+  good:{common:45,uncommon:35,rare:15,epic:4,legendary:1,mystic:0},
+  great:{common:20,uncommon:30,rare:30,epic:14,legendary:5,mystic:1},
+  nat20:{common:5,uncommon:15,rare:25,epic:28,legendary:20,mystic:7},
+};
+
+const PETS=[
+  {id:"p1",name:"Feuerfuchs",  icon:"🦊",rarity:"common",   evo:["🦊","🔥🦊","⚡🦊"],ability:"STR +2",effect:{STR:2},  lore:"Er wärmt dich für den Kampf. Sein Fell brennt nie."},
+  {id:"p2",name:"Mondkatze",   icon:"🐱",rarity:"uncommon", evo:["🐱","🌙🐱","👑🐱"],ability:"WIS +3",effect:{WIS:3},  lore:"Sieht das Unsichtbare. Hört das Ungehörte."},
+  {id:"p3",name:"Kristallbär", icon:"🐻",rarity:"rare",     evo:["🐻","💎🐻","🔮🐻"],ability:"CON +4",effect:{CON:4},  lore:"Unerschütterliche Stärke aus dem Herzen des Berges."},
+  {id:"p4",name:"Sturmadler",  icon:"🦅",rarity:"epic",     evo:["🦅","⚡🦅","🌩️🦅"],ability:"DEX +5",effect:{DEX:5},  lore:"Schneller als der Wind, älter als der Donner."},
+  {id:"p5",name:"Sterndrache", icon:"🐲",rarity:"legendary",evo:["🐲","🌟🐲","💫🐲"],ability:"INT +6",effect:{INT:6},  lore:"Trägt das Wissen aller vergangenen Zeitalter."},
+  {id:"p6",name:"Mondphönix",  icon:"🦄",rarity:"mystic",   evo:["🦄","🌈🦄","✨🦄"],ability:"+2 alle",effect:{STR:2,DEX:2,CON:2,INT:2,WIS:2,CHA:2},lore:"Jenseits von Legende. Jenseits von Mythos."},
+  {id:"p7",name:"Erdwurm",     icon:"🐛",rarity:"common",   evo:["🐛","🦋","🌈🦋"],  ability:"DEX +1",effect:{DEX:1},  lore:"Klein. Ausdauernd. Unterschätzt."},
+  {id:"p8",name:"Geistfisch",  icon:"🐟",rarity:"uncommon", evo:["🐟","🌊🐟","💙🐟"],ability:"WIS +2",effect:{WIS:2},  lore:"Schwimmt zwischen den Welten."},
+];
+
+const ITEMS=[
+  {id:"i1", name:"Holzschwert",      icon:"🗡️",slot:"weapon", rarity:"common",   stats:{STR:1}},
+  {id:"i2", name:"Lederrüstung",     icon:"🧥",slot:"armor",  rarity:"common",   stats:{CON:1}},
+  {id:"i3", name:"Glücksamulett",    icon:"🔮",slot:"trinket",rarity:"uncommon", stats:{DEX:2,CHA:1}},
+  {id:"i4", name:"Weisheitsring",    icon:"💍",slot:"ring",   rarity:"uncommon", stats:{INT:2,WIS:1}},
+  {id:"i5", name:"Drachenschuppe",   icon:"🛡️",slot:"armor",  rarity:"rare",     stats:{CON:4,STR:2}},
+  {id:"i6", name:"Magierstab",       icon:"🪄",slot:"weapon", rarity:"rare",     stats:{INT:3,WIS:2}},
+  {id:"i7", name:"Sturmbogen",       icon:"🏹",slot:"weapon", rarity:"epic",     stats:{DEX:5,STR:2}},
+  {id:"i8", name:"Phönixfeder",      icon:"🪶",slot:"trinket",rarity:"epic",     stats:{CHA:4,WIS:3}},
+  {id:"i9", name:"Titanhandschuh",   icon:"🥊",slot:"weapon", rarity:"legendary",stats:{STR:8,CON:3}},
+  {id:"i10",name:"Sternenkrone",     icon:"👑",slot:"helmet", rarity:"legendary",stats:{INT:6,WIS:4,CHA:4}},
+  {id:"i11",name:"Weltenseele",      icon:"🌌",slot:"trinket",rarity:"mystic",   stats:{STR:5,DEX:5,CON:5,INT:5,WIS:5,CHA:5}},
+];
+
+const SHOP_ITEMS=[
+  {id:"sh1", name:"Heiltrank",           icon:"🧪",cost:15, type:"consumable",desc:"Stellt 30 HP wieder her",         eff:"hp+30"},
+  {id:"sh2", name:"Großer Heiltrank",    icon:"💉",cost:35, type:"consumable",desc:"Stellt 80 HP wieder her",         eff:"hp+80"},
+  {id:"sh3", name:"XP-Elixier",          icon:"⚗️",cost:40, type:"consumable",desc:"+50 XP sofort",                  eff:"xp+50"},
+  {id:"sh4", name:"Goldtrank",           icon:"🍶",cost:30, type:"consumable",desc:"Nächste Quest: +100% Gold",       eff:"goldboost"},
+  {id:"sh5", name:"Glückszauber",        icon:"🍀",cost:25, type:"consumable",desc:"+3 auf nächsten Würfelwurf",      eff:"dicemod+3"},
+  {id:"sh6", name:"Streak-Schutz",       icon:"🛡️",cost:50, type:"consumable",desc:"Nächste Niederlage: Streak bleibt",eff:"streakshield"},
+  {id:"sh7", name:"Lootbox",             icon:"📦",cost:20, type:"lootbox",   desc:"Zufälliges Item (Normal)",        eff:"loot:normal"},
+  {id:"sh8", name:"Lootbox (Selten)",    icon:"💜",cost:60, type:"lootbox",   desc:"Höhere Chance auf Rare+",         eff:"loot:great"},
+  {id:"sh9", name:"Mystische Lootbox",   icon:"🌌",cost:150,type:"lootbox",   desc:"Nat-20 Gewichtungen!",            eff:"loot:nat20"},
+  {id:"sh10",name:"Haustier-Ei",         icon:"🥚",cost:80, type:"lootbox",   desc:"Zufälliges Haustier",             eff:"pet:common"},
+  {id:"sh11",name:"Seltenes Haustier-Ei",icon:"🔮",cost:200,type:"lootbox",   desc:"Haustier (Rare+)",                eff:"pet:rare"},
+  {id:"sh12",name:"STR-Tome",            icon:"📕",cost:100,type:"upgrade",   desc:"STR dauerhaft +1",                eff:"attr:STR+1"},
+  {id:"sh13",name:"INT-Tome",            icon:"📘",cost:100,type:"upgrade",   desc:"INT dauerhaft +1",                eff:"attr:INT+1"},
+  {id:"sh14",name:"WIS-Tome",            icon:"📗",cost:100,type:"upgrade",   desc:"WIS dauerhaft +1",                eff:"attr:WIS+1"},
+  {id:"sh15",name:"Max-HP Upgrade",      icon:"❤️",cost:75, type:"upgrade",   desc:"Max HP dauerhaft +20",            eff:"maxhp+20"},
+];
+
+const DUNGEONS=[
+  {id:"d1",name:"Höhle der Faulheit",  icon:"🕯️",dc:10,story:"Tief in dieser Höhle schläft der Prokrastinations-Dämon. Er flüstert: 'Morgen ist auch noch ein Tag.' Bezwinge ihn — oder werde sein nächstes Opfer.",boss:{name:"Prokrastinations-Dämon",icon:"😈",hp:80,maxHp:80,atk:15,dc:10,reward:{xp:100,gold:40,rarity:"uncommon"},taunt:["Ruh dich erst noch aus...","Morgen geht das auch noch!","Du bist zu müde dafür."]}},
+  {id:"d2",name:"Turm der Ablenkung",  icon:"📱",dc:13,story:"Jede Stufe dieses Turms ist ein weiterer Tab, ein weiteres Video, eine weitere Benachrichtigung. Die Hydra der Ablenkung wartet oben — und sie wächst mit jedem Scroll.",boss:{name:"Hydra der Ablenkung",icon:"🐍",hp:120,maxHp:120,atk:20,dc:13,reward:{xp:180,gold:70,rarity:"rare"},taunt:["*notification sound*","Nur NOCH ein Video...","Hast du schon deine Mails gecheckt?"]}},
+  {id:"d3",name:"Palast der Zweifel",  icon:"🌑",dc:16,story:"Der innere Kritiker residiert hier. Er kennt deine schwächsten Gedanken und flüstert sie dir ins Ohr. Nur wer sich selbst glaubt, kann ihn besiegen.",boss:{name:"Stimme des Zweifels",icon:"🌑",hp:160,maxHp:160,atk:25,dc:16,reward:{xp:280,gold:100,rarity:"epic"},taunt:["Du bist nicht gut genug.","Andere machen das besser.","Wer glaubt dir das schon?"]}},
+];
+
+const HOME_BASES=[
+  {lvl:1, name:"Holzhütte",   icon:"🛖",sky:"#0c0a1e",ground:"#1a2a0a",story:"Dein Abenteuer beginnt hier. Eine einfache Hütte, ein Lagerfeuer, die Sterne."},
+  {lvl:5, name:"Steinhaus",   icon:"🏠",sky:"#0a1020",ground:"#1a3010",story:"Stein für Stein hast du dein Heim befestigt. Die Wände halten nun dem Sturm stand."},
+  {lvl:10,name:"Turmfestung", icon:"🏰",sky:"#08082a",ground:"#0a0a1a",story:"Dein Name ist bekannt in den Dörfern ringsum. Die Festung thront über dem Land."},
+  {lvl:20,name:"Magierturm",  icon:"🗼",sky:"#150a2e",ground:"#0d0522",story:"Magie durchdringt dein Reich. Der Turm reicht in Sphären, die Sterbliche nie sahen."},
+  {lvl:35,name:"Drachenburg", icon:"🏯",sky:"#1a0508",ground:"#0d0205",story:"Drachen gehorchen dir. Deine Burg bricht den Horizont. Legenden sprechen deinen Namen."},
+  {lvl:50,name:"Himmelspalast",icon:"✨",sky:"#0a0520",ground:"#150a30",story:"Du transzendierst das Sterbliche. Dein Palast schwebt über den Wolken. Du bist Legende."},
+];
+
+const TITLES=[
+  {id:"t1",name:"Der Aufstehende",   req:lvl=>lvl>=2,  icon:"🌅"},
+  {id:"t2",name:"Gewohnheitssüchtig",req:s=>s.character.streak>=5,icon:"🔥"},
+  {id:"t3",name:"Kerker-Bezwinger",  req:s=>s.dungeons.some(d=>d.bossKilled),icon:"🏆"},
+  {id:"t4",name:"Zoowärter",         req:s=>s.zoo.length>=3,icon:"🐾"},
+  {id:"t5",name:"Ausgerüstet",       req:s=>Object.values(s.character.equipment).filter(Boolean).length>=3,icon:"⚔️"},
+  {id:"t6",name:"Nat-20-Legende",    req:s=>(s.nat20Count||0)>=5,icon:"💫"},
+  {id:"t7",name:"Der Reiche",        req:s=>s.character.gold>=500,icon:"🪙"},
+  {id:"t8",name:"Meister",           req:s=>s.character.level>=20,icon:"👑"},
+];
+
+const TUTORIAL_PAGES=[
+  {title:"Attribute",icon:"📊",lines:["6 Attribute: STR, DEX, CON, INT, WIS, CHA.","Jede Quest-Kategorie gehört zu einem Attribut.","Bonus beim Würfeln: (Attribut−10)÷2.","Items & Haustiere erhöhen Attribute dauerhaft."]},
+  {title:"D20 System",icon:"🎲",lines:["Nat 1 → Fehlschlag: kein XP, kein Gold.","2–9 → Erfolg: 80% Belohnung.","10–14 → Gut: 100% + Loot-Chance.","15–19 → Groß: 150% + besserer Loot.","Nat 20 → Göttlich: 300% + hohe Loot-Chance!"]},
+  {title:"Dungeons",icon:"🏰",lines:["Dungeons sind Ordner mit eigenen Quests.","Alle Quests erledigt → Miniboss erscheint.","Kämpfe mit D20 gegen den Boss.","Sieg: epischer Loot. Niederlage: Streak weg."]},
+  {title:"Haustiere & Zoo",icon:"🐾",lines:["Haustiere droppen als Loot oder aus Eiern.","Nur das aktive Tier gibt seinen Bonus.","3 Evolutionsstufen mit dem Level.","Seltenheiten bis Mystisch!"]},
+  {title:"Home Base",icon:"🏡",lines:["Deine Unterkunft wächst mit dir.","Level 1: Holzhütte → Level 50: Himmelspalast.","Jede Stufe erzählt eine neue Geschichte.","Vervollständige Dungeons für besondere Events."]},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function getInitState(){
+  return{
+    setup:false,
+    pointBuyLeft:27,
+    baseAttrs:{STR:8,DEX:8,CON:8,INT:8,WIS:8,CHA:8},
+    character:{name:"Held",level:1,xp:0,xpToNext:100,gold:30,streak:0,hp:100,maxHp:100,equippedPet:null,equipment:{weapon:null,armor:null,helmet:null,ring:null,trinket:null}},
+    inventory:[],zoo:[],buffs:{},
+    nat20Count:0,
+    quests:[
+      {id:1,title:"Morgenroutine",    cat:"habits",  xp:20,gold:5, done:false,desc:"Aufstehen & Bett machen",dc:8},
+      {id:2,title:"30 Min Sport",     cat:"fitness", xp:30,gold:8, done:false,desc:"Laufen, Training, Bewegung",dc:10},
+      {id:3,title:"Gesund essen",     cat:"health",  xp:20,gold:6, done:false,desc:"Vollwertige Mahlzeiten",dc:8},
+      {id:4,title:"30 Min Lesen",     cat:"learning",xp:25,gold:7, done:false,desc:"Buch oder Fachtext",dc:10},
+      {id:5,title:"10 Min Meditieren",cat:"mindful", xp:20,gold:5, done:false,desc:"Atemübungen oder Stille",dc:8},
+      {id:6,title:"Jemanden anrufen", cat:"social",  xp:15,gold:4, done:false,desc:"Familie oder Freunde",dc:6},
+    ],
+    dungeons:DUNGEONS.map(d=>({...d,quests:[],bossKilled:false,boss:{...d.boss,hp:d.boss.maxHp}})),
+    log:[],
+  };
+}
+
+let S=loadState();
+let TAB="quests";
+let MODAL=null; // {type, data}
+let PB_ATTRS=null; // point buy temp
+
+function loadState(){try{const s=localStorage.getItem("rpg-v5");return s?JSON.parse(s):null;}catch{return null;}}
+function saveState(){try{localStorage.setItem("rpg-v5",JSON.stringify(S));}catch{}}
+
+// ═══════════════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════════════
+function d20(){return Math.floor(Math.random()*20)+1;}
+function attrMod(v){return Math.floor((v-10)/2);}
+
+function computedAttrs(){
+  const b={...S.baseAttrs};
+  Object.values(S.character.equipment).forEach(item=>{
+    if(!item)return;
+    Object.entries(item.stats).forEach(([k,v])=>{b[k]=(b[k]||0)+v;});
+  });
+  if(S.character.equippedPet){
+    const p=PETS.find(x=>x.id===S.character.equippedPet);
+    if(p)Object.entries(p.effect).forEach(([k,v])=>{b[k]=(b[k]||0)+v;});
+  }
+  return b;
+}
+
+function getLoot(roll){
+  if(roll===1)return LOOT[1];
+  if(roll===20)return LOOT[20];
+  if(roll<=9)return LOOT["2-9"];
+  if(roll<=14)return LOOT["10-14"];
+  return LOOT["15-19"];
+}
+
+function weightedRarity(tier){
+  const w=R_WEIGHTS[tier];if(!w)return"common";
+  const total=Object.values(w).reduce((a,b)=>a+b,0);
+  let r=Math.random()*total;
+  for(const[rar,wt]of Object.entries(w)){r-=wt;if(r<=0)return rar;}
+  return"common";
+}
+
+function randomItemByTier(tier){
+  const rar=weightedRarity(tier);
+  const pool=ITEMS.filter(i=>i.rarity===rar);
+  const fallback=ITEMS.filter(i=>R_ORDER.indexOf(i.rarity)<=R_ORDER.indexOf(rar));
+  const src=pool.length?pool:fallback;
+  return src[Math.floor(Math.random()*src.length)];
+}
+
+function randomPetByMinRarity(min="common"){
+  const minIdx=R_ORDER.indexOf(min);
+  const pool=PETS.filter(p=>R_ORDER.indexOf(p.rarity)>=minIdx);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function gainXPGold(xp,gold){
+  S.character.gold+=gold;
+  S.character.xp+=xp;
+  let lvledUp=false;
+  while(S.character.xp>=S.character.xpToNext){
+    S.character.xp-=S.character.xpToNext;
+    S.character.level++;
+    S.character.xpToNext=Math.floor(S.character.xpToNext*1.5);
+    lvledUp=true;
+  }
+  if(lvledUp)setTimeout(()=>{MODAL={type:"levelup"};render();},600);
+  checkTitles();
+}
+
+function checkTitles(){
+  // nothing to store, titles computed on render
+}
+
+function getEarnedTitles(){
+  return TITLES.filter(t=>{try{return t.req(S);}catch{return false;}});
+}
+
+function getLevelTitle(l){
+  const t=["Neuling","Lehrling","Abenteurer","Kämpfer","Veteran","Meister","Champion","Held","Legende","Halbgott","Gottheit"];
+  return t[Math.min(Math.floor(l/5),t.length-1)];
+}
+
+function getHomeBase(){
+  return[...HOME_BASES].reverse().find(h=>S.character.level>=h.lvl)||HOME_BASES[0];
+}
+
+function addLog(text){
+  const time=new Date().toLocaleTimeString("de",{hour:"2-digit",minute:"2-digit"});
+  S.log=[{text,time},...S.log.slice(0,49)];
+}
+
+// Quest completion
+function completeQuestById(questId,dungeonId){
+  const qList=dungeonId?S.dungeons.find(d=>d.id===dungeonId)?.quests:S.quests;
+  const quest=qList?.find(q=>q.id===questId);
+  if(!quest||quest.done)return;
+
+  const attrs=computedAttrs();
+  const attrKey=CAT_ATTR[quest.cat];
+  const mod=attrMod(attrs[attrKey]||8);
+  const diceMod=S.buffs?.dicemod||0;
+  const raw=d20();
+  const total=Math.min(raw+mod+diceMod,20);
+  const loot=getLoot(total===20?20:raw===1?1:total);
+
+  if(S.buffs?.dicemod>0){S.buffs.dicemod=Math.max(0,S.buffs.dicemod-diceMod);if(!S.buffs.dicemod)delete S.buffs.dicemod;}
+
+  let item=null,pet=null;
+  if(loot.iC>Math.random())item=randomItemByTier(loot.tier);
+  if(loot.pC>Math.random())pet=randomPetByMinRarity("common");
+
+  const goldM=S.buffs?.goldboost?2:1;
+  if(S.buffs?.goldboost)delete S.buffs.goldboost;
+  const earnedXP=Math.floor(quest.xp*loot.xpM);
+  const earnedGold=Math.floor(quest.gold*loot.goldM*goldM);
+
+  if(raw===20)S.nat20Count=(S.nat20Count||0)+1;
+
+  if(item)S.inventory.push({...item,uid:Date.now()});
+  if(pet&&!S.zoo.find(p=>p.id===pet.id))S.zoo.push({...pet,petLevel:1});
+
+  const newStreak=loot.tier==="fail"?0:S.character.streak+1;
+  S.character.streak=newStreak;
+  gainXPGold(earnedXP,earnedGold);
+
+  if(dungeonId){S.dungeons=S.dungeons.map(d=>d.id===dungeonId?{...d,quests:d.quests.map(q=>q.id===questId?{...q,done:true}:q)}:d);}
+  else{S.quests=S.quests.map(q=>q.id===questId?{...q,done:true}:q);}
+
+  const storyLine=loot.story[Math.floor(Math.random()*loot.story.length)];
+  addLog(`${quest.title}: ${loot.label} (${raw}) +${earnedXP}XP — "${storyLine}"`);
+  saveState();
+
+  MODAL={type:"rollresult",data:{raw,total,mod,diceMod,loot,quest,item,pet,earnedXP,earnedGold}};
+  render();
+}
+
+function buyShopItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item||S.character.gold<item.cost)return;
+  S.character.gold-=item.cost;
+  const e=item.eff;
+  if(e==="hp+30")S.character.hp=Math.min(S.character.hp+30,S.character.maxHp);
+  if(e==="hp+80")S.character.hp=Math.min(S.character.hp+80,S.character.maxHp);
+  if(e==="goldboost")S.buffs.goldboost=true;
+  if(e==="dicemod+3")S.buffs.dicemod=(S.buffs.dicemod||0)+3;
+  if(e==="streakshield")S.buffs.streakshield=true;
+  if(e==="maxhp+20"){S.character.maxHp+=20;S.character.hp+=20;}
+  if(e==="xp+50")gainXPGold(50,0);
+  if(e==="attr:STR+1")S.baseAttrs.STR++;
+  if(e==="attr:INT+1")S.baseAttrs.INT++;
+  if(e==="attr:WIS+1")S.baseAttrs.WIS++;
+  if(e.startsWith("loot:")){const t=e.split(":")[1];const ni=randomItemByTier(t);if(ni)S.inventory.push({...ni,uid:Date.now()});}
+  if(e.startsWith("pet:")){const minR=e.split(":")[1];const np=randomPetByMinRarity(minR);if(np&&!S.zoo.find(p=>p.id===np.id))S.zoo.push({...np,petLevel:1});}
+  addLog(`🛒 Gekauft: ${item.name}`);
+  saveState();
+  float(`🛒 ${item.name}`,"#fbbf24");
+  render();
+}
+
+function equipItem(uid){
+  const item=S.inventory.find(i=>i.uid===uid);
+  if(!item)return;
+  S.character.equipment={...S.character.equipment,[item.slot]:{...item}};
+  float(`${item.icon} ${item.name} ausgerüstet!`,RARITIES[item.rarity].color);
+  addLog(`⚔️ Ausgerüstet: ${item.name}`);
+  saveState();render();
+}
+
+function equipPet(petId){
+  S.character.equippedPet=petId;
+  const p=PETS.find(x=>x.id===petId);
+  if(p)float(`${p.icon} ${p.name} begleitet dich!`,RARITIES[p.rarity].color);
+  saveState();render();
+}
+
+function addNewQuest(title,cat,dc,dungeonId){
+  if(!title.trim())return;
+  const q={id:Date.now(),title:title.trim(),cat,xp:20,gold:7,done:false,desc:"Eigene Quest",dc:parseInt(dc)||10};
+  if(dungeonId){S.dungeons=S.dungeons.map(d=>d.id===dungeonId?{...d,quests:[...d.quests,q]}:d);}
+  else S.quests.push(q);
+  saveState();render();
+}
+
+function resetDay(){
+  S.quests=S.quests.map(q=>({...q,done:false}));
+  S.character.streak=0;
+  saveState();render();
+}
+
+// Point buy
+const PB_COSTS={8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
+function pbSpend(attr,dir){
+  if(!PB_ATTRS)return;
+  const cur=PB_ATTRS[attr];const next=cur+dir;
+  if(next<8||next>15)return;
+  const cost=dir>0?(PB_COSTS[next]-PB_COSTS[cur]):-(PB_COSTS[cur]-PB_COSTS[next]);
+  const rem=pbRemaining();
+  if(rem-cost<0)return;
+  PB_ATTRS[attr]=next;
+  render();
+}
+function pbRemaining(){
+  if(!PB_ATTRS)return 27;
+  return 27-Object.entries(PB_ATTRS).reduce((sum,[k,v])=>sum+(PB_COSTS[v]||0),0);
+}
+
+// Boss fight state
+let BOSS_STATE=null;
+function startBoss(dungeonId){
+  const dng=S.dungeons.find(d=>d.id===dungeonId);
+  if(!dng||dng.bossKilled)return;
+  BOSS_STATE={dungeonId,bossHp:dng.boss.maxHp,playerHp:S.character.hp,log:[],phase:"idle",lastRoll:null,rolling:false};
+  MODAL={type:"boss",data:{dungeonId}};
+  render();
+}
+
+function bossDieRoll(){
+  if(!BOSS_STATE||BOSS_STATE.rolling||BOSS_STATE.phase!=="idle")return;
+  BOSS_STATE.rolling=true;
+  BOSS_STATE.lastRoll=null;
+  let t=0;
+  const interval=setInterval(()=>{
+    t++;
+    document.getElementById("boss-die")&&(document.getElementById("boss-die").textContent=d20());
+    if(t>14){
+      clearInterval(interval);
+      const raw=d20();
+      const attrs=computedAttrs();
+      const totalMod=Object.values(attrs).reduce((s,v)=>s+Math.max(0,attrMod(v)),0);
+      const dng=S.dungeons.find(d=>d.id===BOSS_STATE.dungeonId);
+      const boss=dng.boss;
+      const total=Math.min(raw+Math.floor(totalMod/3),20);
+      BOSS_STATE.lastRoll={raw,total,isCrit:raw===20,isFail:raw===1,success:raw===20||(total>=boss.dc)};
+      BOSS_STATE.rolling=false;
+      if(document.getElementById("boss-die"))document.getElementById("boss-die").textContent=raw;
+      renderBossActions();
+    }
+  },60);
+}
+
+function bossAttack(){
+  if(!BOSS_STATE||!BOSS_STATE.lastRoll)return;
+  const dng=S.dungeons.find(d=>d.id===BOSS_STATE.dungeonId);
+  const boss=dng.boss;
+  const {raw,total,isCrit,isFail,success}=BOSS_STATE.lastRoll;
+  BOSS_STATE.lastRoll=null;
+
+  const playerAtk=8+Math.floor(S.character.level*1.5);
+  const dmg=isCrit?playerAtk*2:success?playerAtk:Math.floor(playerAtk*.25);
+  BOSS_STATE.bossHp=Math.max(0,BOSS_STATE.bossHp-dmg);
+  BOSS_STATE.log.unshift(isCrit?`⚡ KRIT! Du: ${dmg} Schaden!`:success?`⚔️ Treffer! ${dmg} Schaden`:`💨 Fehlschlag... ${dmg} Schaden`);
+
+  if(BOSS_STATE.bossHp<=0){
+    BOSS_STATE.phase="victory";
+    addLog(`🏆 Boss besiegt: ${boss.name}!`);
+    renderBossScreen();return;
+  }
+
+  BOSS_STATE.phase="bossAttack";
+  renderBossScreen();
+  setTimeout(()=>{
+    const bDmg=isFail?boss.atk*2:success?Math.floor(boss.atk*.4):boss.atk;
+    BOSS_STATE.playerHp=Math.max(0,BOSS_STATE.playerHp-bDmg);
+    const taunt=boss.taunt[Math.floor(Math.random()*boss.taunt.length)];
+    BOSS_STATE.log.unshift(`${boss.icon} "${taunt}" — ${bDmg} Schaden!`);
+    if(BOSS_STATE.playerHp<=0){BOSS_STATE.phase="defeat";addLog(`💀 Niederlage gegen ${boss.name}.`);}
+    else BOSS_STATE.phase="idle";
+    renderBossScreen();
+  },900);
+}
+
+function bossVictory(){
+  const dng=S.dungeons.find(d=>d.id===BOSS_STATE.dungeonId);
+  const r=dng.boss.reward;
+  const lootItem=randomItemByTier("great");
+  if(lootItem)S.inventory.push({...lootItem,uid:Date.now()});
+  gainXPGold(r.xp,r.gold);
+  S.dungeons=S.dungeons.map(d=>d.id===BOSS_STATE.dungeonId?{...d,bossKilled:true}:d);
+  float(`🏆 BOSS BESIEGT! +${r.xp}XP`,"#fbbf24");
+  BOSS_STATE=null;MODAL=null;saveState();render();
+}
+
+function bossDefeat(){
+  if(S.buffs?.streakshield){delete S.buffs.streakshield;float("🛡️ Streak-Schutz aktiviert!","#22c55e");}
+  else S.character.streak=0;
+  BOSS_STATE=null;MODAL=null;saveState();render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FLOAT NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+function float(text,color="#a78bfa"){
+  const div=document.createElement("div");
+  div.className="float-item";
+  div.style.color=color;div.style.borderColor=color;
+  div.textContent=text;
+  document.getElementById("floats").appendChild(div);
+  setTimeout(()=>div.remove(),2100);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOME BASE SCENE BUILDER
+// ═══════════════════════════════════════════════════════════════
+function buildScene(){
+  const hb=getHomeBase();
+  const lv=S.character.level;
+  let html=`<div class="home-scene" id="home-scene" style="cursor:pointer">`;
+
+  if(lv<5){
+    // Holzhütte: sternenhimmel, lagerfeuer, hütte
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#050310 0%,#0c0a1e 60%,#1a2a0a 100%)">`;
+    for(let i=0;i<18;i++){
+      const x=Math.random()*100,y=Math.random()*60,s=Math.random()*2+1,d=Math.random()*3;
+      html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s"></div>`;
+    }
+    html+=`<div style="position:absolute;bottom:0;left:0;right:0;height:50px;background:#1a2a0a;border-radius:40% 60% 0 0/20px 20px 0 0"></div>`;
+    // Hütte
+    html+=`<div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%)">
+      <div style="width:0;height:0;border-left:30px solid transparent;border-right:30px solid transparent;border-bottom:25px solid #5c3d1e;margin:0 auto"></div>
+      <div style="width:50px;height:25px;background:#3d2a10;margin:0 auto"></div>
+      <div style="width:12px;height:14px;background:#1a1008;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>
+    </div>`;
+    // Lagerfeuer
+    html+=`<div style="position:absolute;bottom:32px;right:25%">
+      <div style="font-size:14px;animation:flicker .6s infinite alternate">🔥</div>
+    </div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  } else if(lv<10){
+    // Steinhaus: hügel, haus mit schornstein
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#080c20 0%,#0f1830 60%,#0a1f0a 100%)">`;
+    for(let i=0;i<10;i++){const x=Math.random()*100,y=Math.random()*50,s=Math.random()*1.5+.5,d=Math.random()*3;html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s"></div>`;}
+    html+=`<div style="position:absolute;bottom:0;left:0;right:0;height:45px;background:linear-gradient(180deg,#103010,#0a1a0a);border-radius:60% 40% 0 0/15px 15px 0 0"></div>`;
+    html+=`<div style="position:absolute;bottom:0;left:0;right:0;height:30px;background:#0a1a0a"></div>`;
+    // Haus
+    html+=`<div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%)">
+      <div style="width:0;height:0;border-left:35px solid transparent;border-right:35px solid transparent;border-bottom:28px solid #444;margin:0 auto"></div>
+      <div style="width:60px;height:32px;background:#555;margin:0 auto;border:2px solid #333"></div>
+      <div style="width:14px;height:16px;background:#222;position:absolute;bottom:0;left:23px"></div>
+      <div style="width:8px;height:18px;background:#3a3a3a;position:absolute;top:-38px;right:10px"></div>
+    </div>`;
+    html+=`<div style="position:absolute;top:8px;right:37%;font-size:12px;animation:smoke 2s infinite;opacity:.6">💨</div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  } else if(lv<20){
+    // Turmfestung
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#040420 0%,#080840 60%,#0a0a1a 100%)">`;
+    for(let i=0;i<12;i++){const x=Math.random()*100,y=Math.random()*55,s=Math.random()*2+.5,d=Math.random()*3;html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s"></div>`;}
+    html+=`<div style="position:absolute;bottom:0;width:100%;height:30px;background:#0a0a1a"></div>`;
+    // Turm
+    html+=`<div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%)">
+      <div style="display:flex;gap:2px;margin-bottom:0">
+        ${Array(5).fill('<div style="width:8px;height:10px;background:#333;border-top:2px solid #555"></div>').join("")}
+      </div>
+      <div style="width:48px;height:60px;background:#2a2a3a;border:2px solid #444;margin:0 auto"></div>
+      <div style="width:16px;height:18px;background:#111;position:absolute;bottom:0;left:16px"></div>
+    </div>`;
+    // Fackeln
+    html+=`<div style="position:absolute;bottom:88px;left:34%;font-size:12px;animation:flicker .5s infinite alternate">🔥</div>`;
+    html+=`<div style="position:absolute;bottom:88px;right:32%;font-size:12px;animation:flicker .7s infinite alternate">🔥</div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  } else if(lv<35){
+    // Magierturm
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#0e0520 0%,#1a0840 60%,#0d0520 100%)">`;
+    for(let i=0;i<20;i++){const x=Math.random()*100,y=Math.random()*70,s=Math.random()*2+.5,d=Math.random()*4;html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s"></div>`;}
+    html+=`<div style="position:absolute;top:15px;right:15%;font-size:22px;opacity:.7;animation:float 4s infinite">🌙</div>`;
+    // Magische orbs
+    for(let i=0;i<5;i++){const x=10+Math.random()*80,d=Math.random()*3;html+=`<div style="position:absolute;top:${20+Math.random()*40}%;left:${x}%;width:4px;height:4px;border-radius:50%;background:#a78bfa;animation:float ${2+d}s infinite;box-shadow:0 0 6px #7c3aed"></div>`;}
+    html+=`<div style="position:absolute;bottom:0;width:100%;height:25px;background:#0d0520"></div>`;
+    // Hoher turm mit spitze
+    html+=`<div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);text-align:center">
+      <div style="width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:22px solid #4c1d95;margin:0 auto"></div>
+      <div style="width:30px;height:70px;background:linear-gradient(180deg,#2d1b6e,#1e1b4b);margin:0 auto;border:1px solid #4f46e5;box-shadow:0 0 12px #7c3aed44"></div>
+      <div style="width:16px;height:18px;background:#0d0b1e;position:absolute;bottom:0;left:7px;border:1px solid #4f46e5"></div>
+    </div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  } else if(lv<50){
+    // Drachenburg
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#100004 0%,#250508 60%,#1a0204 100%)">`;
+    for(let i=0;i<8;i++){const x=Math.random()*100,y=Math.random()*60,s=Math.random()*2+.5,d=Math.random()*3;html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s;background:#ff6644"></div>`;}
+    html+=`<div style="position:absolute;top:10px;left:15%;font-size:20px;animation:float 3s infinite">🐲</div>`;
+    html+=`<div style="position:absolute;bottom:0;width:100%;height:25px;background:#1a0204"></div>`;
+    // Burg
+    html+=`<div style="position:absolute;bottom:23px;left:50%;transform:translateX(-50%);display:flex;gap:2px;align-items:flex-end">
+      <div style="width:20px;height:45px;background:#2a0808;border:1px solid #5a1010"></div>
+      <div>
+        <div style="display:flex;gap:1px;margin-bottom:0">${Array(4).fill('<div style="width:8px;height:8px;background:#3a1010;border-top:1px solid #5a2020"></div>').join("")}</div>
+        <div style="width:40px;height:55px;background:#2a0808;border:2px solid #5a1010"></div>
+        <div style="width:14px;height:16px;background:#1a0404;position:absolute;bottom:0;left:13px"></div>
+      </div>
+      <div style="width:20px;height:45px;background:#2a0808;border:1px solid #5a1010"></div>
+    </div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  } else {
+    // Himmelspalast
+    html+=`<div class="scene-sky" style="background:linear-gradient(180deg,#050520 0%,#0a0535 50%,#150a30 100%)">`;
+    for(let i=0;i<25;i++){const x=Math.random()*100,y=Math.random()*80,s=Math.random()*3+.5,d=Math.random()*4;html+=`<div class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s"></div>`;}
+    // Wolken
+    html+=`<div style="position:absolute;bottom:25px;left:5%;font-size:30px;opacity:.4">☁️</div>`;
+    html+=`<div style="position:absolute;bottom:35px;right:5%;font-size:22px;opacity:.3">☁️</div>`;
+    // Palast auf wolke
+    html+=`<div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);text-align:center;animation:float 4s infinite">
+      <div style="font-size:36px;filter:drop-shadow(0 0 12px #f9a8d4)">✨</div>
+      <div style="font-size:24px;margin-top:-10px">🏯</div>
+    </div>`;
+    html+=`<div style="position:absolute;bottom:2px;left:8px;font-size:9px;color:#4b5563;font-family:'Cinzel',serif">${hb.name} · Lv ${lv}</div>`;
+    html+=`</div>`;
+  }
+
+  html+=`<div style="position:absolute;bottom:4px;right:8px;font-size:9px;color:var(--purple2);font-family:'Cinzel',serif;font-style:italic">${hb.story.substring(0,40)}...</div>`;
+  html+=`</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERERS
+// ═══════════════════════════════════════════════════════════════
+function renderHeader(){
+  const attrs=computedAttrs();
+  const ch=S.character;
+  const hb=getHomeBase();
+  const pet=ch.equippedPet?PETS.find(p=>p.id===ch.equippedPet):null;
+  const petEvo=pet?pet.evo[Math.min(Math.floor(ch.level/10),2)]:"";
+  const xpPct=Math.min((ch.xp/ch.xpToNext)*100,100);
+  const hpPct=Math.min((ch.hp/ch.maxHp)*100,100);
+  const hpCol=hpPct>60?"#22c55e":hpPct>30?"#f59e0b":"#ef4444";
+  return`<div id="header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:22px">${hb.icon}</div>
+        <div>
+          <div class="cinzel" style="font-size:16px;font-weight:900;color:#c4b5fd;line-height:1">
+            ${ch.name}${petEvo?` <span style="font-size:13px">${petEvo}</span>`:""}
+          </div>
+          <div style="font-size:9px;color:var(--purple);font-style:italic">${getLevelTitle(ch.level)} · Lv ${ch.level} · ${hb.name}</div>
+        </div>
+      </div>
+      <div style="text-align:right;display:flex;flex-direction:column;gap:1px">
+        <div style="font-size:13px;color:var(--gold);font-weight:700">🪙 ${ch.gold}</div>
+        <div style="font-size:9px;color:#f59e0b">🔥 Streak ${ch.streak}</div>
+        ${(S.buffs?.dicemod||0)>0?`<div style="font-size:9px;color:var(--purple2)">🎲 +${S.buffs.dicemod}</div>`:""}
+      </div>
+    </div>
+    <div style="margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--purple2);margin-bottom:2px"><span>${ch.xp}/${ch.xpToNext} XP</span><span>→ Lv${ch.level+1}</span></div>
+      <div class="bar-wrap" style="height:6px"><div class="bar-fill" style="width:${xpPct}%;background:linear-gradient(90deg,var(--purple),#c084fc);box-shadow:0 0 6px #7c3aed88"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;margin-bottom:2px"><span>❤️ HP</span><span style="color:${hpCol}">${ch.hp}/${ch.maxHp}</span></div>
+      <div class="bar-wrap" style="height:4px"><div class="bar-fill" style="width:${hpPct}%;background:${hpCol};box-shadow:0 0 5px ${hpCol}88"></div></div>
+    </div>
+  </div>`;
+}
+
+function renderNav(){
+  const tabs=[["quests","⚔️","Quests"],["dungeons","🏰","Dungeon"],["zoo","🐾","Zoo"],["gear","🎒","Gear"],["shop","🛒","Shop"],["profil","👤","Profil"]];
+  return`<div id="nav">${tabs.map(([t,ic,lb])=>`<button class="nav-btn${TAB===t?" active":""}" onclick="setTab('${t}')">${ic}<span>${lb}</span></button>`).join("")}</div>`;
+}
+
+function renderAttrs(){
+  const attrs=computedAttrs();
+  return`<div class="card" style="padding:10px 12px">
+    <div class="attr-grid">
+      ${Object.entries(ATTRS).map(([k,a])=>{
+        const v=attrs[k]||8;const mod=attrMod(v);
+        return`<div class="attr-cell" style="border-color:${a.color}22">
+          <div style="font-size:14px">${a.icon}</div>
+          <div class="cinzel" style="font-size:8px;color:${a.color};font-weight:700">${k}</div>
+          <div class="cinzel" style="font-size:15px;color:#e9d5ff;font-weight:700">${v}</div>
+          <div style="font-size:9px;color:${mod>=0?"#22c55e":"#ef4444"}">${mod>=0?"+":""}${mod}</div>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+function rarityBadge(r,small){
+  const rd=RARITIES[r];
+  return`<span class="badge" style="color:${rd.color};background:${rd.glow};border:1px solid ${rd.border};font-size:${small?8:9}px">${rd.label}</span>`;
+}
+
+function renderQuestCard(q,dungeonId){
+  const col=CAT_COLOR[q.cat];
+  const attrs=computedAttrs();
+  const attrKey=CAT_ATTR[q.cat];
+  const mod=attrMod(attrs[attrKey]||8);
+  return`<div class="quest-card${q.done?" done":""}" style="border-color:${q.done?"var(--border)":col+"55"}">
+    <div class="quest-header">
+      <div style="flex:1">
+        <div class="cinzel" style="font-size:12px;color:${q.done?"#4b5563":"#e9d5ff"};font-weight:600">${q.title}</div>
+        <div style="font-size:10px;color:#6b7280;margin-top:1px">${q.desc}</div>
+        <div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap">
+          <span class="badge" style="color:var(--purple2);background:#1e1b4b;font-size:9px">+${q.xp}XP</span>
+          <span class="badge" style="color:var(--gold);background:#1c1500;font-size:9px">+${q.gold}🪙</span>
+          <span class="badge" style="color:${col};background:${col}22;font-size:9px">${CAT_LABEL[q.cat]}</span>
+          <span class="badge" style="color:#6b7280;background:#111;font-size:9px">DC${q.dc} ${mod>=0?"+":""}${mod}mod</span>
+        </div>
+      </div>
+      ${q.done
+        ?`<button onclick="undoQuest(${q.id},'${dungeonId||""}')" style="background:#1f2937;border:1px solid #374151;color:#6b7280;border-radius:7px;padding:3px 8px;font-size:10px">↩</button>`
+        :`<button onclick="doQuest(${q.id},'${dungeonId||""}')" style="background:linear-gradient(135deg,#4f46e5,var(--purple));border:none;border-radius:8px;padding:6px 11px;color:#fff;font-size:14px;box-shadow:0 0 10px #7c3aed44">🎲</button>`
+      }
+    </div>
+  </div>`;
+}
+
+// TAB: QUESTS
+function renderQuests(){
+  let h=buildScene();
+  h+=renderAttrs();
+  Object.keys(CAT_LABEL).forEach(cat=>{
+    const qs=S.quests.filter(q=>q.cat===cat);
+    if(!qs.length)return;
+    h+=`<div style="margin-bottom:14px">
+      <div class="section-title" style="color:${CAT_COLOR[cat]}">${CAT_LABEL[cat].toUpperCase()}</div>
+      ${qs.map(q=>renderQuestCard(q,null)).join("")}
+    </div>`;
+  });
+  h+=`<button onclick="resetDay()" style="width:100%;padding:9px;border-radius:9px;background:transparent;border:1px solid var(--border);color:#4b5563;font-size:11px;margin-top:4px;margin-bottom:16px">🌙 Neuen Tag starten</button>`;
+  return h;
+}
+
+// TAB: DUNGEONS
+function renderDungeons(){
+  let h=`<div class="card" style="font-size:11px;color:#6b7280;font-style:italic;padding:8px 12px;margin-bottom:10px">
+    📖 Dungeons sind Ordner mit eigenen Quests. Erledige alle → Boss erscheint.
+  </div>`;
+  S.dungeons.forEach(dng=>{
+    const done=dng.quests.filter(q=>q.done).length;
+    const total=dng.quests.length;
+    const bossReady=total>0&&done===total&&!dng.bossKilled;
+    const pct=total?Math.min((done/total)*100,100):0;
+    h+=`<div class="card" style="border-color:${dng.bossKilled?"#166534":bossReady?"#fbbf2466":"var(--border)"}">
+      <div onclick="toggleDungeon('${dng.id}')" style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer">
+        <div>
+          <div class="cinzel" style="font-size:13px;color:${dng.bossKilled?"#4ade80":"#e9d5ff"};font-weight:700">${dng.icon} ${dng.name}</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:2px;font-style:italic">${dng.story.substring(0,70)}...</div>
+          <div style="font-size:10px;color:var(--purple2);margin-top:3px">${done}/${total} Quests · Boss: ${dng.boss.name}</div>
+          ${total>0?`<div class="bar-wrap" style="height:4px;margin-top:5px"><div class="bar-fill" style="width:${pct}%;background:var(--purple)"></div></div>`:""}
+        </div>
+        <div style="font-size:18px;margin-left:8px">${dng.bossKilled?"🏆":bossReady?"⚡":"▼"}</div>
+      </div>
+      <div id="dng-${dng.id}" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        ${dng.quests.map(q=>renderQuestCard(q,dng.id)).join("")}
+        ${dng.quests.length===0?`<div style="color:#374151;font-style:italic;text-align:center;padding:8px">Keine Quests — füge welche im ➕ Tab hinzu!</div>`:""}
+        ${bossReady?`<button class="btn-gold" style="margin-top:8px;animation:pulse .8s infinite" onclick="startBoss('${dng.id}')">⚔️ BOSS: ${dng.boss.icon} ${dng.boss.name}</button>`:""}
+      </div>
+    </div>`;
+  });
+  return h;
+}
+
+// TAB: ZOO
+function renderZoo(){
+  const ch=S.character;
+  let h=`<div class="section-title">MENAGERIE — ${S.zoo.length} TIERE</div>`;
+  if(!S.zoo.length){
+    h+=`<div style="text-align:center;padding:40px 0;color:#374151">
+      <div style="font-size:48px;margin-bottom:8px">🐾</div>
+      <div style="font-style:italic">Noch keine Haustiere — würfle Nat 20 oder kauf ein Ei!</div>
+    </div>`;return h;
+  }
+  S.zoo.forEach(pet=>{
+    const def=PETS.find(p=>p.id===pet.id)||pet;
+    const eIdx=Math.min(Math.floor(S.character.level/10),2);
+    const equipped=ch.equippedPet===pet.id;
+    const r=RARITIES[def.rarity];
+    h+=`<div class="card" style="border-color:${equipped?r.color:"var(--border)"};box-shadow:${equipped?`0 0 14px ${r.glow}`:none}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="font-size:32px">${def.evo[eIdx]}</div>
+          <div>
+            <div class="cinzel" style="font-size:12px;color:${r.color};font-weight:700">${def.name}</div>
+            ${rarityBadge(def.rarity)}
+            <div style="font-size:10px;color:#6b7280;margin-top:3px">${def.ability}</div>
+            <div style="font-size:9px;color:#4b5563;font-style:italic;margin-top:1px">${def.lore}</div>
+          </div>
+        </div>
+        <button onclick="equipPet('${def.id}')" style="padding:5px 10px;border-radius:8px;border:1px solid ${equipped?r.color:"#2d2a6e"};background:${equipped?r.color+"22":"var(--bg)"};color:${equipped?r.color:"#6b7280"};font-size:10px;font-weight:600;flex-shrink:0">
+          ${equipped?"✓ Aktiv":"Ausrüsten"}
+        </button>
+      </div>
+    </div>`;
+  });
+  return h;
+}
+
+// TAB: GEAR
+function renderGear(){
+  const eq=S.character.equipment;
+  const slots=["weapon","armor","helmet","ring","trinket"];
+  let h=`<div class="section-title">AUSGERÜSTET</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+      ${slots.map(slot=>{
+        const item=eq[slot];
+        const r=item?RARITIES[item.rarity]:null;
+        return`<div style="background:#0d0b1e;border:1px solid ${r?r.border:"var(--border)"};border-radius:9px;padding:8px 6px;text-align:center;min-height:64px">
+          <div style="font-size:20px">${item?item.icon:"○"}</div>
+          <div class="cinzel" style="font-size:9px;color:${r?r.color:"#2d2a6e"};margin-top:2px">${item?item.name:slot}</div>
+          ${item?`<div style="font-size:8px;color:#4b5563;margin-top:1px">${Object.entries(item.stats).map(([k,v])=>`${k}+${v}`).join(" ")}</div>`:""}
+        </div>`;
+      }).join("")}
+    </div>
+  </div>
+  <div class="section-title" style="margin-top:4px">INVENTAR (${S.inventory.length})</div>`;
+  if(!S.inventory.length){h+=`<div style="color:#374151;font-style:italic;text-align:center;padding:20px">Noch kein Loot!</div>`;return h;}
+  S.inventory.forEach((item,idx)=>{
+    const r=RARITIES[item.rarity];
+    const isEquipped=Object.values(eq).find(e=>e&&e.uid===item.uid);
+    h+=`<div class="card" style="border-color:${r.border};box-shadow:${isEquipped?`0 0 10px ${r.glow}`:"none"}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="font-size:24px">${item.icon}</div>
+          <div>
+            <div class="cinzel" style="font-size:11px;color:${r.color};font-weight:600">${item.name}</div>
+            ${rarityBadge(item.rarity,true)}
+            <div style="font-size:9px;color:#6b7280;margin-top:2px">${Object.entries(item.stats).map(([k,v])=>`${k} +${v}`).join(" · ")}</div>
+          </div>
+        </div>
+        ${!isEquipped?`<button onclick="equipItem(${item.uid})" style="padding:5px 9px;border-radius:7px;border:1px solid ${r.border};background:${r.glow};color:${r.color};font-size:9px;font-weight:600;flex-shrink:0">Anlegen</button>`
+          :`<span style="font-size:12px;color:${r.color}">✓</span>`}
+      </div>
+    </div>`;
+  });
+  return h;
+}
+
+// TAB: SHOP
+function renderShop(){
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="section-title" style="margin-bottom:0">🛒 HÄNDLER DES SCHICKSALS</div>
+    <div style="font-size:13px;color:var(--gold);font-weight:700">🪙 ${S.character.gold}</div>
+  </div>`;
+  if(S.buffs&&Object.values(S.buffs).some(Boolean)){
+    h+=`<div class="card" style="border-color:#166534;background:#0d1a0d;margin-bottom:10px;padding:8px 12px">
+      <span style="font-size:9px;color:#22c55e;font-family:'Cinzel',serif;letter-spacing:1px">AKTIVE BUFFS: </span>
+      ${S.buffs?.goldboost?`<span class="badge" style="color:var(--gold);background:#1c1500;font-size:10px">💰 Gold ×2</span> `:""}
+      ${(S.buffs?.dicemod||0)>0?`<span class="badge" style="color:var(--purple2);background:#1e1b4b;font-size:10px">🎲 +${S.buffs.dicemod} Würfel</span> `:""}
+      ${S.buffs?.streakshield?`<span class="badge" style="color:#22c55e;background:#052e16;font-size:10px">🛡️ Streak-Schutz</span>`:""}
+    </div>`;
+  }
+  [["consumable","⚗️ Verbrauchsgüter"],["lootbox","📦 Lootboxen"],["upgrade","📈 Permanente Upgrades"]].forEach(([type,label])=>{
+    const items=SHOP_ITEMS.filter(i=>i.type===type);
+    h+=`<div class="section-title">${label.toUpperCase()}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      ${items.map(item=>{
+        const can=S.character.gold>=item.cost;
+        return`<div class="card" style="padding:10px 11px;opacity:${can?1:.5}">
+          <div style="font-size:20px;margin-bottom:3px">${item.icon}</div>
+          <div class="cinzel" style="font-size:11px;color:#e9d5ff;font-weight:600;line-height:1.3;margin-bottom:2px">${item.name}</div>
+          <div style="font-size:9px;color:#6b7280;margin-bottom:7px;line-height:1.4">${item.desc}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--gold);font-weight:700">🪙 ${item.cost}</span>
+            <button onclick="buyShopItem('${item.id}')" ${!can?"disabled":""} style="padding:4px 10px;border-radius:7px;border:none;font-size:9px;background:${can?"linear-gradient(90deg,#4f46e5,var(--purple))":"#1f2937"};color:${can?"#fff":"#4b5563"};font-weight:700">
+              ${can?"Kaufen":"🔒"}
+            </button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  });
+  return h;
+}
+
+// TAB: PROFIL
+function renderProfil(){
+  const ch=S.character;
+  const attrs=computedAttrs();
+  const hb=getHomeBase();
+  const titles=getEarnedTitles();
+  const pet=ch.equippedPet?PETS.find(p=>p.id===ch.equippedPet):null;
+  const xpPct=Math.min((ch.xp/ch.xpToNext)*100,100);
+
+  let h=`
+  <div class="card" style="text-align:center;background:linear-gradient(135deg,#13103a,#0d0b1e);border-color:#2d2a6e">
+    <div style="font-size:52px;margin-bottom:6px">${hb.icon}</div>
+    <div class="cinzel" style="font-size:20px;font-weight:900;color:#c4b5fd">${ch.name}</div>
+    <div style="font-size:11px;color:var(--purple);margin-top:2px;font-style:italic">${getLevelTitle(ch.level)} · Level ${ch.level}</div>
+    ${pet?`<div style="margin-top:4px;font-size:11px;color:#6b7280">Begleiter: ${pet.evo[Math.min(Math.floor(ch.level/10),2)]} ${pet.name}</div>`:""}
+    <div style="margin:10px 0 4px">
+      <div style="font-size:9px;color:var(--purple2);margin-bottom:2px">${ch.xp} / ${ch.xpToNext} XP</div>
+      <div class="bar-wrap" style="height:8px"><div class="bar-fill" style="width:${xpPct}%;background:linear-gradient(90deg,var(--purple),#c084fc);box-shadow:0 0 8px #7c3aed88"></div></div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:12px">
+      <div style="text-align:center"><div style="color:var(--gold);font-weight:700">🪙 ${ch.gold}</div><div style="font-size:9px;color:#6b7280">Gold</div></div>
+      <div style="text-align:center"><div style="color:#f59e0b;font-weight:700">🔥 ${ch.streak}</div><div style="font-size:9px;color:#6b7280">Streak</div></div>
+      <div style="text-align:center"><div style="color:var(--pink);font-weight:700">💫 ${S.nat20Count||0}</div><div style="font-size:9px;color:#6b7280">Nat 20s</div></div>
+      <div style="text-align:center"><div style="color:#22c55e;font-weight:700">🏆 ${S.dungeons.filter(d=>d.bossKilled).length}</div><div style="font-size:9px;color:#6b7280">Bosse</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">ATTRIBUTE (mit Boni)</div>
+  <div class="card">
+    ${Object.entries(ATTRS).map(([k,a])=>{
+      const base=S.baseAttrs[k];const total=attrs[k]||base;const bonus=total-base;
+      const pct=Math.min(((total-8)/12)*100,100);
+      return`<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+          <span style="color:${a.color}">${a.icon} ${a.label}</span>
+          <span style="color:#e9d5ff">${total} ${bonus>0?`<span style="color:#22c55e;font-size:9px">+${bonus}</span>`:""}</span>
+        </div>
+        <div class="bar-wrap" style="height:5px"><div class="bar-fill" style="width:${pct}%;background:${a.color}"></div></div>
+      </div>`;
+    }).join("")}
+  </div>
+
+  <div class="section-title">HOME BASE REISE</div>
+  <div class="card">
+    ${HOME_BASES.map((hb2,i)=>{
+      const reached=ch.level>=hb2.lvl;
+      const isCurrent=getHomeBase()===hb2;
+      return`<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid ${i<HOME_BASES.length-1?"var(--border)":"transparent"}">
+        <div style="font-size:20px;opacity:${reached?1:.3}">${hb2.icon}</div>
+        <div style="flex:1">
+          <div class="cinzel" style="font-size:11px;color:${isCurrent?"var(--gold)":reached?"#e9d5ff":"#374151"};font-weight:${isCurrent?700:400}">${hb2.name} ${isCurrent?"← Du bist hier":""}</div>
+          <div style="font-size:9px;color:#4b5563">Ab Level ${hb2.lvl}</div>
+        </div>
+        <div style="font-size:14px">${reached?"✓":"🔒"}</div>
+      </div>`;
+    }).join("")}
+  </div>
+
+  <div class="section-title">ERRUNGENE TITEL (${titles.length}/${TITLES.length})</div>
+  <div class="card">
+    ${TITLES.map(t=>{
+      const earned=titles.find(x=>x.id===t.id);
+      return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)22;opacity:${earned?1:.35}">
+        <div style="font-size:18px">${t.icon}</div>
+        <div class="cinzel" style="font-size:11px;color:${earned?"var(--purple2)":"#374151"}">${t.name}</div>
+        <div style="margin-left:auto;font-size:12px">${earned?"✓":""}</div>
+      </div>`;
+    }).join("")}
+  </div>
+
+  <div class="section-title">ABENTEUER-CHRONIK</div>
+  <div class="card">
+    ${S.log.length===0?`<div style="color:#374151;font-style:italic;text-align:center;padding:16px">Noch keine Taten...</div>`
+      :S.log.slice(0,20).map(e=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)22;font-size:11px">
+        <span style="color:#9ca3af;line-height:1.4">${e.text}</span>
+        <span style="color:#374151;flex-shrink:0;margin-left:6px;font-size:9px">${e.time}</span>
+      </div>`).join("")
+    }
+  </div>
+  <div style="height:20px"></div>`;
+  return h;
+}
+
+// ADD (floating form, accessed via long press on +)
+function renderAdd(){
+  let h=`<div class="section-title">NEUE QUEST ERSTELLEN</div>
+  <div class="card">
+    <input class="input-field" id="new-q-title" placeholder="Quest-Titel..." oninput="">
+    <select class="select-field" id="new-q-cat">
+      ${Object.entries(CAT_LABEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}
+    </select>
+    <select class="select-field" id="new-q-dungeon">
+      <option value="">📋 Allgemeine Quests</option>
+      ${S.dungeons.map(d=>`<option value="${d.id}">${d.icon} ${d.name}</option>`).join("")}
+    </select>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <span style="font-size:11px;color:#9ca3af;flex-shrink:0">DC:</span>
+      <input type="number" class="input-field" id="new-q-dc" value="10" min="4" max="20" style="margin-bottom:0;flex:1">
+    </div>
+    <button class="btn-primary" onclick="submitNewQuest()">⚔️ QUEST ANNEHMEN</button>
+  </div>
+  <div style="height:20px"></div>`;
+  return h;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL RENDERERS
+// ═══════════════════════════════════════════════════════════════
+
+// Point Buy
+function renderPointBuy(){
+  if(!PB_ATTRS)PB_ATTRS={STR:8,DEX:8,CON:8,INT:8,WIS:8,CHA:8};
+  const rem=pbRemaining();
+  const PB_COSTS={8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
+  return`<div style="min-height:100vh;background:linear-gradient(160deg,#0d0b1e,#1a0a2e);display:flex;flex-direction:column;align-items:center;padding:30px 20px;font-family:'Crimson Pro',serif">
+    <div class="cinzel" style="font-size:22px;color:#c4b5fd;font-weight:900;margin-bottom:4px;text-align:center">⚔️ CHARAKTER ERSTELLEN</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:20px;text-align:center">Verteile deine <span style="color:${rem===0?"#22c55e":rem<5?"#f59e0b":"var(--purple2)"}; font-weight:700">${rem}</span> verbleibenden Punkte</div>
+    <input id="pb-name" class="input-field" placeholder="Dein Heldenname..." style="max-width:340px">
+    <div class="card" style="width:100%;max-width:340px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+        <span class="cinzel" style="font-size:10px;color:var(--purple);letter-spacing:2px">ATTRIBUTE</span>
+        <span style="font-size:13px;color:${rem===0?"#22c55e":rem<5?"#f59e0b":"var(--purple2)"};font-weight:700">${rem} Punkte</span>
+      </div>
+      ${Object.entries(ATTRS).map(([k,a])=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="font-size:16px;width:24px;text-align:center">${a.icon}</div>
+          <div style="flex:1">
+            <div style="font-size:11px;color:${a.color};font-weight:600">${a.label}</div>
+            <div style="font-size:9px;color:#4b5563">${a.desc}</div>
+          </div>
+          <button onclick="pbSpend('${k}',-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid #2d2a6e;background:#0d0b1e;color:${PB_ATTRS[k]<=8?"#2d2a6e":"#c4b5fd"};font-size:16px;font-weight:700;cursor:pointer;line-height:1" ${PB_ATTRS[k]<=8?"disabled":""}>−</button>
+          <div class="cinzel" style="width:24px;text-align:center;font-size:15px;color:#e9d5ff;font-weight:700">${PB_ATTRS[k]}</div>
+          <button onclick="pbSpend('${k}',1)" style="width:28px;height:28px;border-radius:6px;border:1px solid #2d2a6e;background:#0d0b1e;color:var(--purple2);font-size:16px;font-weight:700;cursor:pointer;line-height:1" ${PB_ATTRS[k]>=15||rem<=0?"disabled":""}>+</button>
+        </div>`).join("")}
+    </div>
+    <button onclick="finishSetup()" style="width:100%;max-width:340px;padding:13px;border-radius:12px;border:none;background:linear-gradient(90deg,#4f46e5,var(--purple));color:#fff;font-family:'Cinzel',serif;font-size:14px;font-weight:900;letter-spacing:1px;box-shadow:0 0 20px #7c3aed44;cursor:pointer">
+      ⚔️ ABENTEUER BEGINNEN
+    </button>
+  </div>`;
+}
+
+// Roll Result Modal
+function renderRollModal(data){
+  const {raw,total,mod,diceMod,loot,quest,item,pet,earnedXP,earnedGold}=data;
+  const isNat20=raw===20;const isNat1=raw===1;
+  const storyLine=loot.story[Math.floor(Math.random()*loot.story.length)];
+  return`<div class="overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="text-align:center;border-color:${loot.color};box-shadow:0 0 50px ${loot.color}44">
+      <div style="font-size:64px;margin-bottom:6px;filter:drop-shadow(0 0 16px ${loot.color})">${isNat20?"💫":isNat1?"💀":"⚄"}</div>
+      <div class="cinzel" style="font-size:52px;font-weight:900;color:${loot.color};text-shadow:0 0 30px ${loot.color};line-height:1">${raw}</div>
+      ${(mod+diceMod)!==0?`<div style="font-size:11px;color:#6b7280;margin-top:2px">+${mod+diceMod} Bonus → ${total} gesamt</div>`:""}
+      <div class="cinzel" style="font-size:16px;color:${loot.color};font-weight:700;margin:10px 0 4px;letter-spacing:1px">${loot.icon} ${loot.label}</div>
+      <div style="font-size:12px;color:#9ca3af;font-style:italic;margin-bottom:10px">"${storyLine}"</div>
+      <div class="card" style="background:#0d0b1e;border-color:#1e1b4b;margin-bottom:12px">
+        ${loot.tier==="fail"
+          ?`<div style="color:var(--red);font-size:12px">Kein XP · Kein Gold · Morgen neuer Versuch</div>`
+          :`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:12px">
+            <span style="color:var(--purple2)">+${earnedXP} XP</span>
+            <span style="color:var(--gold)">+${earnedGold} 🪙</span>
+            ${item?`<span style="color:${RARITIES[item.rarity].color}">${item.icon} ${item.name}!</span>`:""}
+            ${pet?`<span style="color:${RARITIES[pet.rarity].color}">${pet.icon} ${pet.name} erscheint!</span>`:""}
+          </div>`}
+      </div>
+      <button onclick="closeModal()" style="padding:10px 28px;border-radius:10px;border:none;background:linear-gradient(90deg,${loot.color}88,${loot.color});color:${isNat20?"#000":"#fff"};font-family:'Cinzel',serif;font-size:13px;font-weight:700;cursor:pointer">
+        Weiter →
+      </button>
+    </div>
+  </div>`;
+}
+
+// Level Up Modal
+function renderLvlUp(){
+  const hb=getHomeBase();
+  return`<div class="overlay" onclick="closeModal()">
+    <div class="modal" style="text-align:center;border-color:var(--purple);box-shadow:0 0 80px #7c3aed66;animation:levelUp .4s ease-out">
+      <div style="font-size:52px;margin-bottom:8px">⚔️</div>
+      <div class="cinzel" style="font-size:30px;color:var(--gold);font-weight:900;text-shadow:0 0 24px var(--gold)">LEVEL UP!</div>
+      <div style="font-size:18px;color:var(--purple2);margin-top:6px">Level ${S.character.level}</div>
+      <div class="cinzel" style="font-size:14px;color:#c4b5fd;margin-top:2px">${getLevelTitle(S.character.level)}</div>
+      ${getHomeBase().lvl===S.character.level?`<div style="margin-top:12px;padding:10px;background:#0d0b1e;border-radius:10px;border:1px solid var(--gold)">
+        <div style="font-size:20px">${hb.icon}</div>
+        <div class="cinzel" style="font-size:12px;color:var(--gold);margin-top:4px">HOME BASE UPGRADE!</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">${hb.name}</div>
+      </div>`:""}
+      <div style="font-size:11px;color:#4b5563;margin-top:14px">Tippen zum Schließen</div>
+    </div>
+  </div>`;
+}
+
+// Tutorial
+function renderTutorial(){
+  const page=MODAL.data?.page||0;
+  const p=TUTORIAL_PAGES[page];
+  return`<div class="overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:32px">${p.icon}</div>
+        <div class="cinzel" style="font-size:15px;color:#c4b5fd;font-weight:700;margin-top:4px">${p.title}</div>
+        <div style="font-size:10px;color:#4b5563;margin-top:2px">${page+1} / ${TUTORIAL_PAGES.length}</div>
+      </div>
+      ${p.lines.map(l=>`<div class="card" style="padding:9px 12px;margin-bottom:7px;font-size:12px;color:#9ca3af;line-height:1.5;background:#0d0b1e">
+        <span style="color:var(--purple);margin-right:6px">▸</span>${l}
+      </div>`).join("")}
+      <div style="display:flex;gap:8px;margin-top:14px">
+        ${page>0?`<button onclick="tutPage(${page-1})" style="flex:1;padding:8px;border-radius:8px;border:none;background:#2d2a6e;color:#c4b5fd;cursor:pointer;font-size:12px">← Zurück</button>`:"<div style='flex:1'></div>"}
+        ${page<TUTORIAL_PAGES.length-1
+          ?`<button onclick="tutPage(${page+1})" style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px;font-weight:600">Weiter →</button>`
+          :`<button onclick="closeModal()" style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:#fff;cursor:pointer;font-size:12px;font-weight:600">Fertig ✓</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// Boss Fight
+function renderBossScreen(){
+  if(!BOSS_STATE)return"";
+  const dng=S.dungeons.find(d=>d.id===BOSS_STATE.dungeonId);
+  const boss=dng.boss;
+  const bHpPct=Math.min((BOSS_STATE.bossHp/boss.maxHp)*100,100);
+  const pHpPct=Math.min((BOSS_STATE.playerHp/S.character.maxHp)*100,100);
+  const bCol=bHpPct>50?"#ef4444":bHpPct>25?"#f59e0b":"#6b7280";
+  const pCol=pHpPct>60?"#22c55e":pHpPct>30?"#f59e0b":"#ef4444";
+
+  const bossSection=document.getElementById("boss-screen");
+  if(!bossSection)return;
+
+  bossSection.innerHTML=`
+    <div style="background:linear-gradient(180deg,#1a0a2e,#08060f);border-bottom:1px solid #3b0764;padding:12px 18px;text-align:center;position:sticky;top:0;z-index:10">
+      <div style="font-size:9px;color:var(--purple);letter-spacing:3px;font-family:'Cinzel',serif">⚔️ MINIBOSS · ${dng.name.toUpperCase()}</div>
+      <div class="cinzel" style="font-size:17px;color:var(--pink);font-weight:900;margin-top:2px">${boss.icon} ${boss.name}</div>
+    </div>
+    <div style="padding:14px 18px">
+      <div class="card" style="background:#110820;border-color:#3b0764;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#c084fc;margin-bottom:4px">
+          <span class="cinzel">${boss.icon} Boss HP</span><span style="color:${bCol};font-weight:700">${BOSS_STATE.bossHp}/${boss.maxHp}</span>
+        </div>
+        <div class="bar-wrap" style="height:10px"><div class="bar-fill" style="width:${bHpPct}%;background:linear-gradient(90deg,#dc2626,#f87171);box-shadow:0 0 8px #ef444466"></div></div>
+        <div style="font-size:42px;text-align:center;margin-top:8px;opacity:${.3+bHpPct/140}">${boss.icon}</div>
+      </div>
+      <div class="card" style="background:#0a1220;border-color:#1e3a5f;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#93c5fd;margin-bottom:4px">
+          <span class="cinzel">⚔️ Du · DC ${boss.dc}</span><span style="color:${pCol};font-weight:700">${BOSS_STATE.playerHp}/${S.character.maxHp} HP</span>
+        </div>
+        <div class="bar-wrap" style="height:8px"><div class="bar-fill" style="width:${pHpPct}%;background:${pCol};box-shadow:0 0 6px ${pCol}88"></div></div>
+      </div>
+      <div class="card" style="background:#0a0613;min-height:70px;margin-bottom:12px;padding:10px">
+        <div class="section-title">KAMPF-LOG</div>
+        ${BOSS_STATE.log.length===0?`<div style="color:#2d2a4e;font-size:11px;font-style:italic;text-align:center;padding-top:8px">Der Boss wartet...</div>`
+          :BOSS_STATE.log.slice(0,5).map((l,i)=>`<div style="font-size:11px;color:${l.startsWith("⚡")||l.startsWith("⚔️")?"#22c55e":"#f87171"};margin-bottom:2px;opacity:${1-i*.15}">${l}</div>`).join("")}
+      </div>
+      <div id="boss-actions">
+        ${renderBossActionsHTML()}
+      </div>
+    </div>`;
+}
+
+function renderBossActionsHTML(){
+  if(!BOSS_STATE)return"";
+  const boss=S.dungeons.find(d=>d.id===BOSS_STATE.dungeonId)?.boss;
+  if(BOSS_STATE.phase==="victory"){
+    return`<div style="text-align:center;padding:20px 14px;background:linear-gradient(135deg,#052e16,#064e3b);border:2px solid #22c55e;border-radius:14px">
+      <div style="font-size:36px;margin-bottom:6px">🏆</div>
+      <div class="cinzel" style="font-size:20px;color:#4ade80;font-weight:900">BOSS BESIEGT!</div>
+      <div style="color:#86efac;font-size:12px;margin:6px 0 14px">+${boss.reward.xp} XP · +${boss.reward.gold} 🪙</div>
+      <button onclick="bossVictory()" style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(90deg,#16a34a,#22c55e);color:#fff;font-family:'Cinzel',serif;font-size:12px;font-weight:700;cursor:pointer">Beute → </button>
+    </div>`;
+  }
+  if(BOSS_STATE.phase==="defeat"){
+    return`<div style="text-align:center;padding:20px 14px;background:linear-gradient(135deg,#1a0404,#3b0706);border:2px solid #ef4444;border-radius:14px">
+      <div style="font-size:36px;margin-bottom:6px">💀</div>
+      <div class="cinzel" style="font-size:20px;color:#f87171;font-weight:900">NIEDERLAGE</div>
+      <div style="color:#fca5a5;font-size:12px;margin:6px 0 14px">Streak ${S.buffs?.streakshield?"geschützt":"verloren"}.</div>
+      <button onclick="bossDefeat()" style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f1d1d,#dc2626);color:#fff;font-family:'Cinzel',serif;font-size:12px;font-weight:700;cursor:pointer">Schande...</button>
+    </div>`;
+  }
+  if(BOSS_STATE.phase==="bossAttack"){
+    return`<div style="text-align:center;padding:18px;background:#1a0a0a;border:1px solid #7f1d1d;border-radius:12px">
+      <div style="font-size:28px">${boss.icon}</div>
+      <div style="color:#f87171;font-family:'Cinzel',serif;font-size:12px;margin-top:6px">Boss greift an...</div>
+    </div>`;
+  }
+  // idle
+  const lr=BOSS_STATE.lastRoll;
+  return`<div class="card" style="text-align:center">
+    <div id="boss-die" class="die" onclick="bossDieRoll()" style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-color:#4f46e5;color:#c4b5fd;box-shadow:0 0 14px #4f46e544;margin-bottom:8px;cursor:pointer">${lr?lr.raw:"⚄"}</div>
+    <div style="font-size:10px;color:#4b5563;margin-bottom:10px">Tippen zum Würfeln · DC ${boss.dc}</div>
+    ${lr?`<button onclick="bossAttack()" style="width:100%;padding:11px;border-radius:10px;border:none;background:${lr.isCrit?"linear-gradient(90deg,#92400e,var(--gold))":lr.success?"linear-gradient(90deg,#15803d,#22c55e)":"linear-gradient(90deg,#7f1d1d,#dc2626)"};color:${lr.isCrit?"#000":"#fff"};font-family:'Cinzel',serif;font-size:12px;font-weight:900;cursor:pointer">
+      ${lr.isCrit?"⚡ KRITISCHER ANGRIFF!":lr.success?"⚔️ ANGREIFEN!":"💀 Riskieren"}
+    </button>`:""}
+  </div>`;
+}
+
+function renderBossActions(){
+  const el=document.getElementById("boss-actions");
+  if(el)el.innerHTML=renderBossActionsHTML();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════
+function render(){
+  const app=document.getElementById("app");
+  if(!S||!S.setup){
+    app.innerHTML=renderPointBuy();
+    return;
+  }
+
+  if(MODAL){
+    if(MODAL.type==="boss"){
+      app.innerHTML=`<div id="boss-screen" style="min-height:100vh;overflow-y:auto"></div>`;
+      renderBossScreen();
+      return;
+    }
+    if(MODAL.type==="rollresult"){app.innerHTML=`${buildShell()}${renderRollModal(MODAL.data)}`;return;}
+    if(MODAL.type==="levelup"){app.innerHTML=`${buildShell()}${renderLvlUp()}`;return;}
+    if(MODAL.type==="tutorial"){app.innerHTML=`${buildShell()}${renderTutorial()}`;return;}
+  }
+
+  app.innerHTML=buildShell();
+}
+
+function buildShell(){
+  let content="";
+  if(TAB==="quests")content=renderQuests();
+  else if(TAB==="dungeons")content=renderDungeons();
+  else if(TAB==="zoo")content=renderZoo();
+  else if(TAB==="gear")content=renderGear();
+  else if(TAB==="shop")content=renderShop();
+  else if(TAB==="profil")content=renderProfil();
+  else if(TAB==="add")content=renderAdd();
+
+  return`${renderHeader()}<div id="content">${content}</div>${renderNav()}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GLOBAL FUNCTIONS (called from HTML)
+// ═══════════════════════════════════════════════════════════════
+window.setTab=t=>{TAB=t;render();}
+window.closeModal=()=>{MODAL=null;render();}
+window.tutPage=p=>{MODAL={type:"tutorial",data:{page:p}};render();}
+window.pbSpend=pbSpend;
+window.finishSetup=()=>{
+  const name=document.getElementById("pb-name")?.value?.trim();
+  if(!name){alert("Bitte gib einen Heldennamen ein!");return;}
+  S.character.name=name;
+  S.baseAttrs={...PB_ATTRS};
+  S.setup=true;
+  saveState();render();
+};
+window.doQuest=(id,dungeonId)=>completeQuestById(id,dungeonId||null);
+window.undoQuest=(id,dungeonId)=>{
+  if(dungeonId){S.dungeons=S.dungeons.map(d=>d.id===dungeonId?{...d,quests:d.quests.map(q=>q.id===id?{...q,done:false}:q)}:d);}
+  else S.quests=S.quests.map(q=>q.id===id?{...q,done:false}:q);
+  saveState();render();
+};
+window.toggleDungeon=id=>{
+  const el=document.getElementById(`dng-${id}`);
+  if(el)el.style.display=el.style.display==="none"?"block":"none";
+};
+window.startBoss=startBoss;
+window.bossDieRoll=bossDieRoll;
+window.bossAttack=bossAttack;
+window.bossVictory=bossVictory;
+window.bossDefeat=bossDefeat;
+window.equipItem=equipItem;
+window.equipPet=equipPet;
+window.buyShopItem=buyShopItem;
+window.resetDay=resetDay;
+window.submitNewQuest=()=>{
+  const title=document.getElementById("new-q-title")?.value;
+  const cat=document.getElementById("new-q-cat")?.value;
+  const dc=document.getElementById("new-q-dc")?.value;
+  const dngId=document.getElementById("new-q-dungeon")?.value||null;
+  addNewQuest(title,cat,dc,dngId);
+  float("✓ Quest hinzugefügt!","#22c55e");
+};
+window.showTutorial=()=>{MODAL={type:"tutorial",data:{page:0}};render();};
+
+// Scene click → story
+document.addEventListener("click",e=>{
+  if(e.target.closest("#home-scene")){
+    const hb=getHomeBase();
+    float(`${hb.icon} ${hb.story}`,"#a78bfa");
+  }
+});
+
+// PWA Service Worker
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('install',e=>e.waitUntil(caches.open('rpg-v1').then(c=>c.addAll(['.']))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+  const blob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// PWA Manifest
+const manifest={name:"Life RPG – Habit Tracker",short_name:"Life RPG",start_url:".",display:"standalone",background_color:"#08060f",theme_color:"#08060f",description:"Gamifiziere dein Leben mit DnD & RPG Mechaniken",icons:[{src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%2308060f"/><text y=".9em" font-size="80" x="10">⚔️</text></svg>'),sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%2308060f"/><text y=".9em" font-size="80" x="10">⚔️</text></svg>'),sizes:"512x512",type:"image/svg+xml"}]};
+const mlink=document.createElement("link");
+mlink.rel="manifest";
+mlink.href="data:application/manifest+json,"+encodeURIComponent(JSON.stringify(manifest));
+document.head.appendChild(mlink);
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════
+if(!S){S=getInitState();}
+PB_ATTRS={...S.baseAttrs};
+render();
+</script>
+</body>
+</html>
