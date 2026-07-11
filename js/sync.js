@@ -3,8 +3,8 @@
 // BUFF LIFE — SUPABASE CLOUD SYNC
 // Trage hier deine Werte ein (aus Pharao's Sanctum kopieren):
 // ═══════════════════════════════════════════════════════════════
-const SUPABASE_URL = 'DEINE_SUPABASE_URL';   // z.B. https://xxxxxx.supabase.co
-const SUPABASE_KEY = 'DEIN_ANON_KEY';         // anon public key
+const SUPABASE_URL = 'https://crxaetsftmaaqwxetcza.supabase.co';   // z.B. https://xxxxxx.supabase.co
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyeGFldHNmdG1hYXF3eGV0Y3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3ODc3MDgsImV4cCI6MjA5OTM2MzcwOH0.A-_LSS90QG-XGQGufREPcIaCa6ey1C9JMhCYqWorU7o';         // anon public key
 
 // ── SUPABASE CLIENT (kein npm nötig, direkt via fetch) ──────────
 const SB = {
